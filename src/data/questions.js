@@ -1,4 +1,4 @@
-const posts = [
+const questions = [
     {
         id: 1,
         question: "What is the 4th letter of the Greek alphabet?",
@@ -25,4 +25,4 @@ const posts = [
     }
 ];
 
-module.exports = posts;
+module.exports = questions;

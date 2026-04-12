@@ -1,0 +1,19 @@
+meta {
+  name: Edit question
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/1999
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "question": "one plus one equals to?",
+    "answer": "two",
+    "keywords": ["plus","equals"]
+  }
+}

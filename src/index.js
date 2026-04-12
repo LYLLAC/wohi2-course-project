@@ -1,14 +1,14 @@
 const express = require('express');
 
 const app = express();
-const postsRouter = require("./routes/posts");
+const questionsRouter = require("./routes/questions");
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON bodies (will be useful in later steps)
+// Middleware to pare JSON
 app.use(express.json());
-app.use("/api/posts", postsRouter);
+app.use("/api/questions", questionsRouter);
 app.use((req, res) => {
-    res.json({msg: "Not found"});
+    res.status(404).json({msg: "Not found"});
 });
 
 // Start the server
