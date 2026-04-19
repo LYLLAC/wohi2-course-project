@@ -95,7 +95,6 @@ router.put("/:questionId", async (req, res) => {
     }
 });
 
-
 // DELETE /api/questions/:questionId
 router.delete("/:questionId", async (req, res) => {
     const questionId = Number(req.params.questionId);
