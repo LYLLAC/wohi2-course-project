@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../lib/prisma");
+const authenticate = require("../middleware/auth");
+const isOwner = require("../middleware/isOwner");
 
 function formatQuestion(q) {
     return {
@@ -8,6 +10,8 @@ function formatQuestion(q) {
         keywords: q.keywords ? q.keywords.map((k) => k.name) : [],
     };
 }
+
+router.use(authenticate);
 
 // GET /api/questions/
 router.get("/", async (req, res) => {
@@ -54,6 +58,7 @@ router.post("/", async (req, res) => {
         data: {
             question,
             answer,
+            userId: req.user.userId,
             keywords: {
                 connectOrCreate: (keywords || []).map((kw) => ({
                     where: { name: kw.toLowerCase() },
@@ -68,7 +73,7 @@ router.post("/", async (req, res) => {
 });
 
 //PUT /api/questions/:questionId
-router.put("/:questionId", async (req, res) => {
+router.put("/:questionId", isOwner, async (req, res) => {
     const questionId = Number(req.params.questionId);
     const { question, answer, keywords } = req.body;
 
@@ -96,7 +101,7 @@ router.put("/:questionId", async (req, res) => {
 });
 
 // DELETE /api/questions/:questionId
-router.delete("/:questionId", async (req, res) => {
+router.delete("/:questionId", isOwner, async (req, res) => {
     const questionId = Number(req.params.questionId);
 
     try {

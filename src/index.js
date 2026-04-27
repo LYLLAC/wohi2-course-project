@@ -2,11 +2,15 @@ const express = require('express');
 
 const app = express();
 const questionsRouter = require("./routes/questions");
+const authRoutes = require("./routes/auth");
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware to pare JSON
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionsRouter);
+
 app.use((req, res) => {
     res.status(404).json({msg: "Not found"});
 });
