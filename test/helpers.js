@@ -10,9 +10,9 @@ async function resetDb() {
     await prisma.user.deleteMany();
 }
 
-async function registerAndLogin(email = "a@test.io", name = "A") {
+async function registerAndLogin(email = "a@test.io", name = "A", role = "player") {
     await request(app).post("/api/auth/register")
-        .send({ email, password: "pw12345", name });
+        .send({ email, password: "pw12345", name, role });
     const res = await request(app).post("/api/auth/login")
         .send({ email, password: "pw12345" });
     return res.body.token;

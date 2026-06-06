@@ -12,8 +12,9 @@ model User {
   email     String     @unique @db.VarChar(255)
   password  String     @db.VarChar(255)
   name      String     @db.VarChar(100)
+
+  role      String     @default("player") @db.VarChar(20)
   questions Question[]
-  
   likes     Like[]
   attempts  Attempt[]
 }
@@ -22,12 +23,11 @@ model Question {
   id        Int       @id @default(autoincrement())
   question  String    @db.Text
   answer    String    @db.VarChar(255)
+  choices   Choice[]
   keywords  Keyword[]
   userId    Int
   user      User      @relation(fields: [userId], references: [id])
-  
   imageUrl  String?   @db.VarChar(255)
-
   likes     Like[]
   attempts  Attempt[]
 
@@ -60,9 +60,17 @@ model Attempt {
   submittedAnswer String   @db.VarChar(255)
   correctAnswer   String   @db.VarChar(255)
   createdAt       DateTime @default(now())
-  
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   question        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("attempts")
+}
+
+model Choice {
+  id         Int      @id @default(autoincrement())
+  text       String   @db.VarChar(255)
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("choices")
 }

@@ -12,7 +12,6 @@ function getCurrentUserId() {
     return null;
   }
 }
-
 function getToken() {
   return localStorage.getItem(CONFIG.STORAGE_KEY);
 }
@@ -169,7 +168,7 @@ async function loadQuestions(keyword = "", page = 1) {
               <a href="#" class="read-more" data-id="${q.id}">See answer</a>
             </span>
             ${
-              q.userId === currentUserId
+              Number(q.userId) === Number(currentUserId)
                 ? `<span class="owner-actions">
                     <button class="btn btn-edit" data-id="${q.id}">Edit</button>
                     <button class="btn btn-delete" data-id="${q.id}">Delete</button>
@@ -247,7 +246,7 @@ async function loadQuestionDetail(qId) {
   try {
     const q = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}/${qId}`);
     const currentUserId = getCurrentUserId();
-    const isOwner = q.userId === currentUserId;
+    const isOwner = Number(q.userId) === Number(currentUserId);
 
     container.innerHTML = `
       <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
@@ -318,6 +317,10 @@ async function showQuestionForm(qId) {
           <input type="text" id="q-keywords" value="${q.keywords ? q.keywords.join(", ") : ""}" />
         </div>
         <div class="form-group">
+          <label for="q-choices">Choices (comma-separated, optional — leave blank for open-ended)</label>
+          <input type="text" id="q-choices" value="${q.choices ? q.choices.join(", ") : ""}" placeholder="e.g. Paris, London, Berlin, Madrid" />
+        </div>
+        <div class="form-group">
           <label for="q-image">Image ${isEdit ? "(leave blank to keep current)" : "(optional)"}</label>
           <input type="file" id="q-image" accept="image/*" />
           ${isEdit && q.imageUrl ? `<img src="${q.imageUrl}" alt="" style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
@@ -341,6 +344,7 @@ async function showQuestionForm(qId) {
     body.append("question", document.getElementById("q-question").value);
     body.append("answer", document.getElementById("q-answer").value);
     body.append("keywords", document.getElementById("q-keywords").value);
+    body.append("choices", document.getElementById("q-choices").value);
     const imageFile = document.getElementById("q-image").files[0];
     if (imageFile) body.append("image", imageFile);
 
@@ -364,6 +368,7 @@ async function playQuestion(qId) {
 
   try {
     const q = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}/${qId}`);
+    const isMultiChoice = q.choices && q.choices.length > 0;
 
     container.innerHTML = `
       <a href="#" id="back-btn" class="back-link">&larr; Back to questions</a>
@@ -375,15 +380,33 @@ async function playQuestion(qId) {
             ? `<div class="question-keywords" style="justify-content:center;margin-bottom:1.5rem">${q.keywords.map((k) => `<span class="keyword">${k}</span>`).join("")}</div>`
             : ""
         }
-        <form id="play-form" style="text-align:left">
-          <div class="form-group">
-            <label for="play-answer">Your answer</label>
-            <textarea id="play-answer" rows="3" required></textarea>
-          </div>
-          <div style="text-align:center">
-            <button type="submit" class="btn btn-play" style="padding:0.7rem 2.5rem;font-size:1rem">Submit</button>
-          </div>
-        </form>
+        ${
+          q.choices && q.choices.length > 0
+            ? `<form id="play-form" style="text-align:left">
+                <div class="form-group">
+                  <label>Choose your answer</label>
+                  ${q.choices.map((c, i) => `
+                    <div style="margin:0.5rem 0">
+                      <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;color:#e0e0e0">
+                        <input type="radio" name="play-choice" value="${c}" required />
+                        ${c}
+                      </label>
+                    </div>`).join("")}
+                </div>
+                <div style="text-align:center">
+                  <button type="submit" class="btn btn-play" style="padding:0.7rem 2.5rem;font-size:1rem">Submit</button>
+                </div>
+              </form>`
+            : `<form id="play-form" style="text-align:left">
+                <div class="form-group">
+                  <label for="play-answer">Your answer</label>
+                  <textarea id="play-answer" rows="3" required></textarea>
+                </div>
+                <div style="text-align:center">
+                  <button type="submit" class="btn btn-play" style="padding:0.7rem 2.5rem;font-size:1rem">Submit</button>
+                </div>
+              </form>`
+        }
         <div id="play-result"></div>
         <p id="play-error" class="error"></p>
       </div>`;
@@ -400,7 +423,14 @@ async function playQuestion(qId) {
       errorEl.textContent = "";
       resultEl.innerHTML = "";
 
-      const answer = document.getElementById("play-answer").value;
+      const answer = isMultiChoice
+        ? document.querySelector('input[name="play-choice"]:checked')?.value
+        : document.getElementById("play-answer").value;
+
+      if (!answer) {
+          errorEl.textContent = "Please select an answer";
+          return;
+      }
 
       try {
         const result = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}/${qId}/play`, {

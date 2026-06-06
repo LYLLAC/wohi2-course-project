@@ -6,7 +6,7 @@ module.exports = pino({
         paths: ["req.headers.authorization", "req.body.password", "*.password"],
         censor: "[REDACTED]",
     },
-    transport: process.env.NODE_ENV === "development"
+    transport: process.env.NODE_ENV === "development" && process.stdout.isTTY
         ? { target: "pino-pretty" }
         : undefined,
 });

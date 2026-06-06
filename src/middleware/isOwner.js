@@ -10,7 +10,13 @@ async function isOwner(req, res, next) {
         });
 
         if (!question) return next(new NotFoundError("Question not found"));
-        if (question.userId !== req.user.userId) return next(new ForbiddenError("You can only modify your own questions"));
+
+        const isAdmin = req.user.role === "admin";
+        const isQuestionOwner = question.userId === req.user.userId;
+
+        if (!isAdmin && !isQuestionOwner) {
+            return next(new ForbiddenError("You can only modify your own questions"));
+        }
 
         req.question = question;
         next();
