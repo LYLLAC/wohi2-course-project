@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT 'editor';
+ALTER TABLE `User` ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT 'player';

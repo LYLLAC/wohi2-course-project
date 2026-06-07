@@ -11,6 +11,10 @@ async function isOwner(req, res, next) {
 
         if (!question) return next(new NotFoundError("Question not found"));
 
+        if (req.user.role === "player") {
+            return next(new ForbiddenError("Players cannot modify questions"));
+        }
+
         const isAdmin = req.user.role === "admin";
         const isQuestionOwner = question.userId === req.user.userId;
 

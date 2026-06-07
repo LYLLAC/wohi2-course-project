@@ -154,4 +154,17 @@ describe("questions tests", () => {
 
         expect(res.status).toBe(403);
     });
+
+    it("players cannot edit questions", async () => {
+        const editorToken = await registerAndLogin("editor3@test.io", "Editor3", "editor");
+        const playerToken = await registerAndLogin("player2@test.io", "Player2", "player");
+
+        const question = await createQuestion(editorToken, { question: "Q", answer: "A" });
+
+        const res = await request(app).put(`/api/questions/${question.id}`)
+            .set("Authorization", `Bearer ${playerToken}`)
+            .send({ question: "hacked", answer: "hacked" });
+
+        expect(res.status).toBe(403);
+    });
 });
